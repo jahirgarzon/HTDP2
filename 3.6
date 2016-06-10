@@ -1,1 +1,74 @@
 
+; physical constants
+(define WHEEL-RADIUS 5)
+(define WHEEL-DISTANCE (* 5 WHEEL-RADIUS ))
+(define BODY-LENGTH (* 10 WHEEL-RADIUS))
+(define BODY-HEIGHT (* 3  WHEEL-RADIUS))
+(define WIDTH-WORLD (* 100 WHEEL-RADIUS))
+(define HEIGHT-WORLD (* 10 WHEEL-RADIUS))
+(define Y-CAR (/ HEIGHT-WORLD 2))
+
+; GRAPHICAL CONSTANTS
+(define WHEEL (circle WHEEL-RADIUS "solid" "black"))
+(define SPACE (rectangle WHEEL-DISTANCE WHEEL-RADIUS "solid" "white"))
+(define BOTH-WHEELS (beside WHEEL SPACE WHEEL))
+(define CAR-BODY (above
+        (rectangle (* .7 BODY-LENGTH) (* .33 BODY-HEIGHT)  "solid" "red")
+        (rectangle BODY-LENGTH (* .66 BODY-HEIGHT) "solid" "red")))
+(define CAR (overlay/offset BOTH-WHEELS 0 (* -.66 BODY-HEIGHT) CAR-BODY))        
+(define BACKGROUND  (empty-scene WIDTH-WORLD HEIGHT-WORLD))
+
+; worldstate is a Number.
+; interpretation the number of pixels between the car and the left border.
+
+; main :
+;      WorldState -> WorldState
+; launches the program from some initial state
+(define (main ws)
+  (big-bang ws
+            [on-tick tock]
+            [to-draw render])) 
+
+; render :
+;      WorldState -> Image
+;  places the car into a scene, x pixels,from the left border
+; of the BACKGROUND image.
+;to the front end of the car
+
+; given :ws= 30 expect :(place-image CAR 30 Y-CAR BACKGROUND
+;given : ws 60 expect: (place-image CAR 60 Y-CAR BACKGROUND))
+;given : ws=120 expect: (place-image CAR 120 Y-CAR BACKGROUND))
+(define (render ws)
+ (place-image CAR ws Y-CAR BACKGROUND))
+
+
+; clock-tick-handler :
+;   WorldState -> WorldState
+; adds 3 to ws to move the car right.
+(check-expect (tock 5) 8)
+(check-expect (tock 19)  22)
+(check-expect (tock 30) 33)
+(define (tock ws)
+  (+ 3 ws))
+
+; key-stroke-handler :
+;  WorldState String -> WorldState
+; for each Key Stroke big-bang evaluates
+; (key-stroke-handler cw ke) for current world cw
+; and keystroke ke to obtain new world.
+
+
+; mouse-event-handler :
+;   WorldState Number Number String -> Worldstate
+; for each manipulation of the mouse, big-bang
+; evaluates (mouse-event-handler cw x y me)
+; for current world cw, coordinates x,y and
+; mouse event me. to obtain new world.
+
+; end?
+;  WorldState-> Boolean
+; after an event is processed big-bang
+; evaluates (end? cw) for current world cw
+;to determine wether the program stops.
+
+;wishlist
