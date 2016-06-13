@@ -1,0 +1,82 @@
+; physical constants
+(define WHEEL-RADIUS 5)
+(define WHEEL-DISTANCE (* 5 WHEEL-RADIUS ))
+(define BODY-LENGTH (* 10 WHEEL-RADIUS))
+(define BODY-HEIGHT (* 3  WHEEL-RADIUS))
+(define WIDTH-WORLD (* 100 WHEEL-RADIUS))
+(define HEIGHT-WORLD (* 10 WHEEL-RADIUS))
+
+; GRAPHICAL CONSTANTS
+(define WHEEL (circle WHEEL-RADIUS "solid" "black"))
+(define SPACE (rectangle WHEEL-DISTANCE WHEEL-RADIUS "solid" "red"))
+(define BOTH-WHEELS (beside WHEEL SPACE WHEEL))
+(define CAR-BODY (overlay/xy (rectangle (* .7 BODY-LENGTH) BODY-HEIGHT "solid" "red")
+        0 BODY-HEIGHT
+        (rectangle BODY-LENGTH (* .8 BODY-HEIGHT) "solid" "red")))
+(define CAR (overlay/xy (rectangle (* .3 BODY-LENGTH) (* .6 BODY-HEIGHT) "solid" "gray")
+                     (* -.4 BODY-LENGTH )   (* BODY-HEIGHT -.4)
+              (overlay/offset BOTH-WHEELS 0 (* -.9 BODY-HEIGHT) CAR-BODY)))  
+(define TREE
+  (underlay/xy (circle (* WHEEL-RADIUS 2.5) "solid" "green")
+               (* WHEEL-RADIUS 2.4) (* WHEEL-RADIUS 3.0)
+               (rectangle (* WHEEL-RADIUS 1.7 ) (* WHEEL-RADIUS 3.5) "solid" "brown")))
+(define BACKGROUND (underlay (rectangle WIDTH-WORLD HEIGHT-WORLD "solid" "yellow") (place-image (beside TREE TREE TREE TREE TREE TREE TREE TREE TREE TREE TREE TREE TREE TREE TREE)
+                (- WIDTH-WORLD (/ (*(image-width TREE) 15) 2)) (- HEIGHT-WORLD (/ (image-height TREE ) 2))
+  (empty-scene WIDTH-WORLD HEIGHT-WORLD ))))
+(define Y-CAR (- HEIGHT-WORLD (/ (image-height CAR) 2) ))
+
+; AnimationState is a Number.
+; interpretation the number of clock ticks since the animation started.
+
+; main :
+;      WorldState -> WorldState
+; launches the program from some initial state
+(define (main as)
+  (big-bang as
+            [on-tick tock]
+            [to-draw render]
+            [on-key kiki]
+            [stop-when fin])) 
+
+; render :
+;      WorldState -> Image
+;  places the car into a scene, x pixels,from the left border
+; of the BACKGROUND image,to the front end of the car
+
+; given :ws= 30 expect :(place-image CAR 30 Y-CAR BACKGROUND
+;given : ws=60 expect: (place-image CAR 60 Y-CAR BACKGROUND))
+;given : ws=120 expect: (place-image CAR 120 Y-CAR BACKGROUND))
+(define (render as)
+ (place-image . (+ as (* 5 (sin as))) Y-CAR BACKGROUND))
+
+
+; clock-tick-handler :
+;   WorldState -> WorldState
+; adds 3 to as to move the car right.
+
+(define (tock as)
+  (+ 1 as))
+
+; key-stroke-handler :
+;  WorldState String -> WorldState
+; for each Key Stroke it subtracts 2.1 from ws to slow the car down.
+(check-expect (kiki 4 "a") 1.9)
+(check-expect (kiki 8 "c") 5.9)
+(check-expect (kiki 22 "z") 19.9)
+(define (kiki as ke)
+  (- as 2.1))
+
+; mouse-event-handler :
+;   WorldState Number Number String -> Worldstate
+; for each manipulation of the mouse, big-bang
+; evaluates (mouse-event-handler cw x y me)
+; for current world cw, coordinates x,y and
+; mouse event me. to obtain new world.
+
+; end?
+;  WorldState-> Boolean
+; when the car leaves the scene it stops the program.
+(define (fin as )
+   (> as (+ (/ BODY-LENGTH 2)WIDTH-WORLD)))
+
+;wishlist
